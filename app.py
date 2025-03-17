@@ -30,4 +30,4 @@ class Item(Resource):
 api.add_resource(Item, '/item/<string:name>', '/item')
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True) 
