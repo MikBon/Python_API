@@ -4,7 +4,11 @@ from flask_restful import Api, Resource
 app = Flask(__name__)
 api = Api(app)
 
-items = []
+items = [
+    {'name': 'Laptop', 'price': 1000},
+    {'name': 'Smartphone', 'price': 700},
+    {'name': 'Headphones', 'price': 150}
+]
 
 class Item(Resource):
     def get(self, name):
