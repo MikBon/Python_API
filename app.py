@@ -1,37 +1,19 @@
-from flask import Flask, jsonify, request
-from flask_restful import Api, Resource
+from flask import Flask
+from flask_restful import Api
+from db import db
+from resources.store import Store, StoreList
+from resources.item import Item, ItemList
 
-app = Flask(__name__)
-api = Api(app)
+def create_app():
+    app = Flask(__name__)
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///data.db"
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+    db.init_app(app)
 
-items = [
-    {'name': 'Laptop', 'price': 1000},
-    {'name': 'Smartphone', 'price': 700},
-    {'name': 'Headphones', 'price': 150}
-]
+    api = Api(app)
+    api.add_resource(Store, "/store/<int:store_id>")
+    api.add_resource(StoreList, "/stores")
+    api.add_resource(Item, "/item/<int:item_id>")
+    api.add_resource(ItemList, "/items")
 
-class Item(Resource):
-    def get(self, name):
-        for item in items:
-            if item['name'] == name:
-                return jsonify(item)
-        return {'message': 'Item not found'}, 404
-    
-    def post(self):
-        data = request.get_json()
-        new_item = {
-            'name': data['name'],
-            'price': data['price']
-        }
-        items.append(new_item)
-        return jsonify(new_item)
-    
-    def delete(self, name):
-        global items
-        items = [item for item in items if item['name'] != name]
-        return {'message': 'Item deleted'}
-    
-api.add_resource(Item, '/item/<string:name>', '/item')
-
-if __name__ == '__main__':
-    app.run(debug=True) 
+    return app
