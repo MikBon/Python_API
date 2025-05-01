@@ -1,6 +1,6 @@
 from app import create_app
 from db import db
-import models  # Імпорт потрібен для реєстрації моделей
+import models.store, models.tag
 
 app = create_app()
 

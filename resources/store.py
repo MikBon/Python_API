@@ -6,18 +6,11 @@ from db import db
 class Store(Resource):
     def get(self, store_id):
         store = StoreModel.query.get_or_404(store_id)
-        return {"id": store.id, "name": store.name}
-
-    def delete(self, store_id):
-        store = StoreModel.query.get_or_404(store_id)
-        db.session.delete(store)
-        db.session.commit()
-        return {"message": "Store deleted"}
-
-class StoreList(Resource):
-    def get(self):
-        stores = StoreModel.query.all()
-        return [{"id": s.id, "name": s.name} for s in stores]
+        return {
+            "id": store.id,
+            "name": store.name,
+            "tags": [{"id": tag.id, "name": tag.name} for tag in store.tags]
+        }
 
     def post(self):
         data = request.get_json()
