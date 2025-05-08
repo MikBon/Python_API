@@ -1,46 +1,46 @@
-from flask_restful import Resource
-from flask import request
+from flask.views import MethodView
+from flask_smorest import Blueprint
+from flask_jwt_extended import jwt_required
+
 from models.item import ItemModel
 from db import db
 
-class Item(Resource):
+blp = Blueprint("Items", "items", description="Operations on items")
+
+@blp.route("/item/<int:item_id>")
+class Item(MethodView):
+    @jwt_required()
     def get(self, item_id):
         item = ItemModel.query.get_or_404(item_id)
-        return {
-            "id": item.id,
-            "name": item.name,
-            "price": item.price,
-            "store_id": item.store_id
-        }
+        return item
 
+    @jwt_required()
     def delete(self, item_id):
         item = ItemModel.query.get_or_404(item_id)
         db.session.delete(item)
         db.session.commit()
-        return {"message": "Item deleted"}
+        return {"message": "Item deleted."}
 
-class ItemList(Resource):
-    def get(self):
-        items = ItemModel.query.all()
-        return [{
-            "id": i.id,
-            "name": i.name,
-            "price": i.price,
-            "store_id": i.store_id
-        } for i in items]
-
-    def post(self):
+    @jwt_required()
+    def put(self, item_id):
+        from flask import request
+        item = ItemModel.query.get_or_404(item_id)
         data = request.get_json()
-        item = ItemModel(
-            name=data["name"],
-            price=data["price"],
-            store_id=data["store_id"]
-        )
+        item.price = data["price"]
+        db.session.commit()
+        return item
+
+@blp.route("/item")
+class ItemList(MethodView):
+    @jwt_required()
+    def get(self):
+        return ItemModel.query.all()
+
+    @jwt_required()
+    def post(self):
+        from flask import request
+        data = request.get_json()
+        item = ItemModel(**data)
         db.session.add(item)
         db.session.commit()
-        return {
-            "id": item.id,
-            "name": item.name,
-            "price": item.price,
-            "store_id": item.store_id
-        }, 201
+        return item, 201

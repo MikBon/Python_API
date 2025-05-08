@@ -1,22 +1,37 @@
-from flask_restful import Resource
-from flask import request
+from flask.views import MethodView
+from flask_smorest import Blueprint
+from flask_jwt_extended import jwt_required
+
 from models.tag import TagModel
-from models.store import StoreModel
 from db import db
 
-class Tag(Resource):
-    def post(self):
-        data = request.get_json()
-        store = StoreModel.query.get_or_404(data["store_id"])
-        tag = TagModel(name=data["name"], store=store)
-        db.session.add(tag)
-        db.session.commit()
-        return {"id": tag.id, "name": tag.name, "store_id": tag.store_id}, 201
+blp = Blueprint("Tags", "tags", description="Operations on tags")
 
+@blp.route("/tag/<int:tag_id>")
+class Tag(MethodView):
+    @jwt_required()
     def get(self, tag_id):
         tag = TagModel.query.get_or_404(tag_id)
-        return {
-            "id": tag.id,
-            "name": tag.name,
-            "store": {"id": tag.store.id, "name": tag.store.name}
-        }
+        return tag
+
+    @jwt_required()
+    def delete(self, tag_id):
+        tag = TagModel.query.get_or_404(tag_id)
+        db.session.delete(tag)
+        db.session.commit()
+        return {"message": "Tag deleted."}
+
+@blp.route("/tag")
+class TagList(MethodView):
+    @jwt_required()
+    def get(self):
+        return TagModel.query.all()
+
+    @jwt_required()
+    def post(self):
+        from flask import request
+        data = request.get_json()
+        tag = TagModel(**data)
+        db.session.add(tag)
+        db.session.commit()
+        return tag, 201
