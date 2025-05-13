@@ -30,4 +30,9 @@ def create_app():
     api.register_blueprint(StoreBlueprint)
     api.register_blueprint(TagBlueprint)
 
+    
+    with app.app_context():
+        from models import user, item, store, tag
+        db.create_all()
+
     return app
